@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multichat</title><link rel="stylesheet" href="css/app.css"></head>
+<body><div class="app" id="app">
+<aside id="side">
+ <div class="brand">Multichat</div>
+ <button class="nav" id="new">＋ Nueva sesión</button>
+ <input id="find" type="search" placeholder="Buscar sesiones" aria-label="Buscar sesiones">
+ <div class="lbl">Sesiones</div><ul id="list"></ul>
+ <button class="nav" id="cfg">⚙ Claves y apariencia</button>
+</aside>
+<main>
+ <header>
+  <button id="burger" aria-label="Menú">☰</button>
+  <button class="pill" id="pill"><i class="dot" id="pdot"></i><b id="pname">Elegí un modelo</b></button>
+  <button id="spec">Especificaciones</button>
+  <div class="seg" id="mode"><button data-m="chat" class="on">Chat</button><button data-m="code">Código</button><button disabled title="Fase 3: TinyFish y Parallel">Búsqueda</button></div>
+ </header>
+ <div id="chat" aria-live="polite"></div>
+ <div class="box"><textarea id="msg" rows="2" placeholder="Escribí tu mensaje. Enter envía, Shift+Enter agrega una línea."></textarea>
+  <div class="tools"><span class="mut" id="ctx"></span><button id="stop" hidden>Detener</button><button class="p" id="send">Enviar</button></div></div>
+</main></div>
+<div id="toasts"></div>
+
+<dialog id="dCfg"><h2>Claves y apariencia</h2>
+ <div id="keys"></div>
+ <label class="chk"><input type="checkbox" id="rem"> Recordar claves en este equipo</label>
+ <p class="hint warn">No lo marques en una PC compartida. Sin marcar, las claves se borran al cerrar la pestaña.</p>
+ <button id="wipe">Borrar claves y sesiones</button>
+ <h3>Fondo</h3><div class="sw" id="sw"></div><label class="chk">Color libre <input type="color" id="bgc" value="#fafaf8"></label>
+ <h3>Avisos y voz</h3>
+ <button id="perm">Activar notificaciones</button>
+ <label class="chk"><input type="checkbox" id="auto"> Leer las respuestas en voz alta</label>
+ <select id="voice" aria-label="Voz"></select>
+ <div class="end"><button class="p" data-close>Listo</button></div></dialog>
+
+<dialog id="dMod"><h2>Elegir modelo</h2>
+ <div class="seg" id="tabs"></div>
+ <input id="mq" type="search" placeholder="Buscar por nombre o id">
+ <label class="chk"><input type="checkbox" id="free" checked> Solo gratis (OpenRouter)</label>
+ <div id="mlist"></div><p class="hint" id="mcount"></p>
+ <div class="end"><button data-close>Cerrar</button></div></dialog>
+
+<dialog id="dSpec"><h2>Especificaciones</h2><div id="specBody"></div><div class="end"><button data-close>Cerrar</button></div></dialog>
+<script src="js/vocab.js"></script><script src="js/providers.js"></script><script src="js/status.js"></script><script src="js/app.js"></script>
+</body></html>

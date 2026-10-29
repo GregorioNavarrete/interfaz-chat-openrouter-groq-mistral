@@ -1,0 +1,58 @@
+:root{--bg:#fafaf8;--pn:#ffffffcc;--ink:#1c1f1e;--mut:#5f6866;--ln:#00000020;--ac:#1f7a74;--aci:#fff;--me:#1f7a7418;--err:#b3261e;--ok:#2e9e5b;--no:#d23b32;--na:#9aa3a1}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,"Segoe UI",sans-serif}
+.app{display:grid;grid-template-columns:270px 1fr;height:100%}
+aside{display:flex;flex-direction:column;gap:6px;padding:12px;border-right:1px solid var(--ln);background:var(--pn);min-height:0}
+.brand{font:600 20px Georgia,"Iowan Old Style",serif;padding:4px 8px 10px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:none;border:1px solid var(--ln);border-radius:8px;padding:7px 12px;cursor:pointer}
+button:hover:not(:disabled){background:var(--me)}button:disabled{opacity:.45;cursor:default}
+button.p{background:var(--ac);border-color:var(--ac);color:var(--aci);font-weight:600}
+:focus-visible{outline:2px solid var(--ac);outline-offset:1px}
+.nav{text-align:left;border-color:transparent}
+input[type=search],input[type=password],select,textarea{width:100%;padding:8px 10px;border:1px solid var(--ln);border-radius:8px;background:transparent}
+.lbl{font-size:13px;color:var(--mut);padding:8px 8px 0}
+#list{list-style:none;margin:0;padding:0;overflow-y:auto;flex:1}
+#list li{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;cursor:pointer}
+#list li:hover,#list li.on{background:var(--me)}
+#list li span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#list li button{border:0;padding:0 6px;opacity:.6}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--na);flex:none;display:inline-block}
+.dot.disponible{background:var(--ok)}.dot.caido{background:var(--no)}
+main{display:flex;flex-direction:column;min-width:0;min-height:0}
+header{display:flex;gap:8px;align-items:center;padding:10px 16px;flex-wrap:wrap}
+.pill{display:flex;gap:8px;align-items:center;border-radius:20px}
+.seg{display:flex;margin-left:auto}.seg button{border-radius:0;margin:0 0 0 -1px}
+.seg button:first-child{border-radius:8px 0 0 8px;margin:0}.seg button:last-child{border-radius:0 8px 8px 0}
+.seg .on{background:var(--ac);color:var(--aci);border-color:var(--ac)}
+#burger{display:none}
+#chat{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:12px;padding:8px 16px;width:100%;max-width:820px;margin:0 auto}
+.hero{margin:auto;text-align:center;padding:24px}
+.hero h1{font:400 clamp(28px,5vw,44px)/1.15 Georgia,"Iowan Old Style",serif;margin:0 0 8px}
+.mut,.hint{color:var(--mut);font-size:13px}.warn{color:var(--err)}
+.m{padding:9px 13px;max-width:88%;overflow-wrap:anywhere;white-space:pre-wrap;border-radius:14px}
+.u{align-self:flex-end;background:var(--me)}.a{align-self:flex-start;border:1px solid var(--ln);background:var(--pn)}
+.e{color:var(--err);border-color:var(--err)}
+.m pre{white-space:pre;overflow-x:auto;background:#0000001a;border-radius:8px;padding:10px;margin:6px 0;font:13px/1.45 ui-monospace,Consolas,monospace}
+.m .say,.m .cp{margin-top:4px;font-size:12px;padding:2px 8px}
+.box{width:100%;max-width:820px;margin:0 auto;padding:8px 16px 16px}
+.box{border:1px solid var(--ln);border-radius:16px;background:var(--pn);margin-bottom:16px;width:calc(100% - 32px)}
+.box textarea{border:0;resize:none;padding:6px 4px}
+.tools{display:flex;gap:8px;align-items:center;justify-content:flex-end}.tools .mut{margin-right:auto}
+dialog{border:1px solid var(--ln);border-radius:14px;background:var(--bg);color:var(--ink);width:min(560px,94vw);max-height:90vh;padding:18px}
+dialog::backdrop{background:#0006}
+h2{font-size:18px;margin:0 0 10px}h3{font-size:14px;margin:16px 0 6px}
+.chk{display:flex;gap:8px;align-items:center;margin:8px 0}.chk input{width:auto}
+.end{display:flex;justify-content:flex-end;margin-top:14px}
+.k{margin:8px 0}.k label{font-size:13px;color:var(--mut)}.k .r{display:flex;gap:6px}
+.sw{display:flex;gap:8px;flex-wrap:wrap}.sw button{width:34px;height:34px;padding:0;border-radius:50%}
+#mlist{max-height:46vh;overflow-y:auto;margin-top:6px}
+#mlist button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;border-bottom:1px solid var(--ln);border-radius:0}
+#mlist small{color:var(--mut);margin-left:auto;white-space:nowrap}
+.tag{font-size:12px;background:var(--me);border-radius:6px;padding:1px 7px;margin-right:4px}
+#specBody p{margin:6px 0}
+#toasts{position:fixed;right:14px;bottom:14px;display:flex;flex-direction:column;gap:8px;z-index:9}
+.toast{background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:10px;max-width:340px}
+@media(max-width:760px){.app{grid-template-columns:1fr}aside{position:fixed;inset:0 25% 0 0;z-index:5;transform:translateX(-100%);transition:transform .2s;background:var(--bg)}
+.app.open aside{transform:none}#burger{display:block}.seg{margin-left:0}}
+@media(prefers-reduced-motion:reduce){aside{transition:none}}
