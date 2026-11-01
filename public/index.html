@@ -8,6 +8,7 @@
  <button class="nav" id="new">＋ Nueva sesión</button>
  <input id="find" type="search" placeholder="Buscar sesiones" aria-label="Buscar sesiones">
  <div class="lbl">Sesiones</div><ul id="list"></ul>
+ <button class="nav" id="agb">🧩 Agentes y skills</button>
  <button class="nav" id="cfg">⚙ Claves y apariencia</button>
 </aside>
 <main>
@@ -15,11 +16,11 @@
   <button id="burger" aria-label="Menú">☰</button>
   <button class="pill" id="pill"><i class="dot" id="pdot"></i><b id="pname">Elegí un modelo</b></button>
   <button id="spec">Especificaciones</button>
-  <div class="seg" id="mode"><button data-m="chat" class="on">Chat</button><button data-m="code">Código</button><button disabled title="Fase 3: TinyFish y Parallel">Búsqueda</button></div>
+  <div class="seg" id="mode"><button data-m="chat" class="on">Chat</button><button data-m="code">Código</button><button data-m="search">Búsqueda</button></div>
  </header>
  <div id="chat" aria-live="polite"></div>
- <div class="box"><textarea id="msg" rows="2" placeholder="Escribí tu mensaje. Enter envía, Shift+Enter agrega una línea."></textarea>
-  <div class="tools"><span class="mut" id="ctx"></span><button id="stop" hidden>Detener</button><button class="p" id="send">Enviar</button></div></div>
+ <div class="box"><div id="smenu" hidden></div><textarea id="msg" rows="2" placeholder="Escribí tu mensaje. Enter envía, Shift+Enter agrega una línea."></textarea>
+  <div class="tools"><span class="mut" id="ctx"></span><button id="att" title="Adjuntar archivos de texto">📎</button><input type="file" id="file" multiple hidden><button id="stop" hidden>Detener</button><button class="p" id="send">Enviar</button></div></div>
 </main></div>
 <div id="toasts"></div>
 
@@ -28,7 +29,10 @@
  <label class="chk"><input type="checkbox" id="rem"> Recordar claves en este equipo</label>
  <p class="hint warn">No lo marques en una PC compartida. Sin marcar, las claves se borran al cerrar la pestaña.</p>
  <button id="wipe">Borrar claves y sesiones</button>
+ <label class="chk"><input type="checkbox" id="tmp"> Sesión temporal: no guardar conversaciones en este equipo</label>
+ <div class="r2"><button id="exp">Exportar sesiones</button><label class="btnlike">Importar sesiones<input type="file" id="imp" accept="application/json" hidden></label></div>
  <h3>Fondo</h3><div class="sw" id="sw"></div><label class="chk">Color libre <input type="color" id="bgc" value="#fafaf8"></label>
+ <h3>Motor del modo Búsqueda</h3><select id="eng" aria-label="Motor de búsqueda"><option value="tinyfish">TinyFish</option><option value="parallel">Parallel</option></select>
  <h3>Avisos y voz</h3>
  <button id="perm">Activar notificaciones</button>
  <label class="chk"><input type="checkbox" id="auto"> Leer las respuestas en voz alta</label>
@@ -42,6 +46,15 @@
  <div id="mlist"></div><p class="hint" id="mcount"></p>
  <div class="end"><button data-close>Cerrar</button></div></dialog>
 
+<dialog id="dAg"><h2>Agentes y skills</h2>
+ <p class="hint">Los agentes marcados trabajan en paralelo con su propio modelo cuando enviás un mensaje; el modelo de la sesión integra los informes. En el chat, «/» abre las skills.</p>
+ <h3>Skills</h3><div id="skl"></div>
+ <div class="k"><input id="sn" type="search" placeholder="Nombre (sin espacios)"><textarea id="si" rows="2" placeholder="Instrucciones de la skill"></textarea><button id="sadd">Agregar skill</button></div>
+ <h3>Agentes</h3><div id="agl"></div>
+ <div class="k"><input id="an" type="search" placeholder="Nombre del agente"><select id="ap" aria-label="Proveedor"></select><input id="am" type="search" list="amod" placeholder="Id del modelo"><datalist id="amod"></datalist>
+ <textarea id="ai" rows="2" placeholder="Instrucciones del agente"></textarea><div id="ask"></div><button id="aadd">Agregar agente</button></div>
+ <label class="chk">Agentes a la vez <input id="conc" type="number" min="1" max="4" value="2" style="width:64px"></label>
+ <div class="end"><button class="p" data-close>Listo</button></div></dialog>
 <dialog id="dSpec"><h2>Especificaciones</h2><div id="specBody"></div><div class="end"><button data-close>Cerrar</button></div></dialog>
-<script src="js/vocab.js"></script><script src="js/providers.js"></script><script src="js/status.js"></script><script src="js/app.js"></script>
+<script src="js/vocab.js"></script><script src="js/providers.js"></script><script src="js/status.js"></script><script src="js/app.js"></script><script src="js/extras.js"></script>
 </body></html>

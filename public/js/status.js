@@ -23,9 +23,17 @@ const Status = {
         const ok = eps.some(e => (e.status == null || e.status >= 0) && (e.uptime_last_5m == null || e.uptime_last_5m >= 80));
         return this.set(p, m, ok ? ESTADO.OK : ESTADO.CAIDO, ok ? '' : 'sin proveedores sanos');
       }
+      if (p === 'cloudflare') {
+        const c = await fetch('/proxy/cloudflare/models', { headers: { 'x-key': cfKey(key) } });
+        if (c.status === 401 || c.status === 403) return this.set(p, m, ESTADO.CAIDO, 'clave inválida');
+        if (!c.ok) return this.set(p, m, ESTADO.NADA, 'HTTP ' + c.status);
+        const names = (((await c.json().catch(() => ({}))).result) || []).map(x => x.name);
+        if (!names.length) return this.set(p, m, ESTADO.NADA, 'sin lista de modelos');
+        return this.set(p, m, names.includes(m) ? ESTADO.OK : ESTADO.CAIDO, names.includes(m) ? '' : 'ya no figura en la lista');
+      }
       const r = await fetch(PROV[p].url + '/models', { headers: { Authorization: 'Bearer ' + key } });
       if (!r.ok) return this.set(p, m, ESTADO.CAIDO, r.status === 401 ? 'clave inválida' : 'servicio con error ' + r.status);
-      const ids = (await r.json()).data.map(x => x.id);
+      const ids = (await r.json()).data.map(x => String(x.id).replace(/^models\//, ''));
       this.set(p, m, ids.includes(m) ? ESTADO.OK : ESTADO.CAIDO, ids.includes(m) ? '' : 'ya no figura en la lista');
     } catch { this.set(p, m, ESTADO.NADA, 'sin conexión'); }
   },

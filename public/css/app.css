@@ -56,3 +56,6 @@ h2{font-size:18px;margin:0 0 10px}h3{font-size:14px;margin:16px 0 6px}
 @media(max-width:760px){.app{grid-template-columns:1fr}aside{position:fixed;inset:0 25% 0 0;z-index:5;transform:translateX(-100%);transition:transform .2s;background:var(--bg)}
 .app.open aside{transform:none}#burger{display:block}.seg{margin-left:0}}
 @media(prefers-reduced-motion:reduce){aside{transition:none}}
+#smenu{display:flex;flex-direction:column;border:1px solid var(--ln);border-radius:10px;background:var(--bg);margin-bottom:6px}#smenu[hidden]{display:none}#smenu button{border:0;text-align:left}
+.k input,.k textarea,.k select{margin:3px 0}#ask{margin:4px 0}
+.r2{display:flex;gap:8px;margin:8px 0}.btnlike{border:1px solid var(--ln);border-radius:8px;padding:7px 12px;cursor:pointer}.btnlike:hover{background:var(--me)}

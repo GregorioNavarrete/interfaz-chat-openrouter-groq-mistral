@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id), LS = localStorage;
 const S = { sessions: [], cur: null, models: {}, abort: null, bubble: null };
-try { S.sessions = JSON.parse(LS.mc_sessions || '[]'); } catch {}
-const save = () => { try { LS.mc_sessions = JSON.stringify(S.sessions); } catch { toast('No se pudo guardar: almacenamiento lleno.'); } };
+try { S.sessions = JSON.parse(LS.mc_tmp === '1' ? '[]' : (LS.mc_sessions || '[]')); } catch {}
+const save = () => { if (LS.mc_tmp === '1') return; try { LS.mc_sessions = JSON.stringify(S.sessions); } catch { toast('No se pudo guardar: almacenamiento lleno.'); } };
 function toast(t) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; $('toasts').append(d); setTimeout(() => d.remove(), 6000); }
 
 // ---- Claves (F2-T01): sessionStorage por defecto, localStorage solo si "recordar"
@@ -28,7 +28,7 @@ function newSession() {
   S.sessions.unshift(s); save(); open(s.id);
 }
 function open(id) { S.cur = S.sessions.find(s => s.id === id) || S.sessions[0]; $('app').classList.remove('open'); renderAll(); Status.probeAll(getKey); }
-function renderAll() { renderList(); renderPill(); renderChat(); [...$('mode').children].forEach(b => b.classList.toggle('on', b.dataset.m === S.cur.mode)); }
+function renderAll() { renderList(); renderPill(); renderChat(); ctxInfo(); [...$('mode').children].forEach(b => b.classList.toggle('on', b.dataset.m === S.cur.mode)); }
 function renderList() {
   const q = $('find').value.toLowerCase(), ul = $('list'); ul.textContent = '';
   S.sessions.filter(s => s.title.toLowerCase().includes(q)).forEach(s => {
@@ -71,19 +71,20 @@ function renderChat() {
   c.scrollTop = c.scrollHeight;
 }
 function setBusy(b) { $('send').hidden = b; $('stop').hidden = !b; }
-async function send() {
-  const s = S.cur, t = $('msg').value.trim(); if (!t || S.abort) return;
+async function send(extra) {
+  const s = S.cur; let t = $('msg').value.trim(); if (!t || S.abort) return;
+  const sk = takeSkill(t); t = sk.text;
   const key = getKey(s.prov);
   if (!key) return toast('Falta la clave de ' + PROV[s.prov].n + '. Abrí «Claves y apariencia».');
-  const hist = s.msgs.filter(m => !m.err && m.content).map(({ role, content }) => ({ role, content }));
+  const hist = s.msgs.filter(m => !m.err && m.content && !m.panel).map(({ role, content }) => ({ role, content }));
   hist.push({ role: 'user', content: t });
-  if (s.mode === 'code') hist.unshift({ role: 'system', content: CODE_SYS });
+  const sys = sysFor(s, sk.skill, extra && extra.sys); if (sys) hist.unshift({ role: 'system', content: sys });
   s.msgs.push({ role: 'user', content: t }); if (s.msgs.length === 1) s.title = t.slice(0, 40);
   const a = { role: 'assistant', content: '' }; s.msgs.push(a); $('msg').value = ''; renderChat(); renderList();
   const el = $('chat').lastChild; S.abort = new AbortController(); setBusy(true);
   try {
     for await (const c of stream(s.prov, key, s.model, hist, S.abort.signal)) { a.content += c; el.textContent = a.content; $('chat').scrollTop = 1e9; }
-    if (!a.content) a.err = 'El modelo devolvió una respuesta vacía.'; else Status.report(s.prov, s.model, true);
+    if (!a.content) a.err = 'El modelo devolvió una respuesta vacía.'; else { if (extra && extra.tail) a.content += extra.tail; Status.report(s.prov, s.model, true); }
   } catch (e) {
     if (e.name !== 'AbortError') {
       a.err = e instanceof TypeError ? 'No se pudo conectar. Revisá tu conexión.' : e.message;
@@ -91,7 +92,7 @@ async function send() {
     }
   }
   if (!a.content && !a.err) s.msgs.pop();
-  S.abort = null; setBusy(false); save(); renderChat();
+  S.abort = null; setBusy(false); save(); renderChat(); ctxInfo();
   if (a.content && $('auto').checked) speak(a.content);
 }
 
@@ -153,14 +154,17 @@ function openSpec() {
 // ---- Claves y avisos (F2-T09)
 function buildCfg() {
   const k = $('keys'); k.textContent = '';
-  Object.keys(PROV).forEach(p => {
+  Object.keys(PROV).concat(Object.keys(SEARCH)).forEach(p => {
     const w = document.createElement('div'), l = document.createElement('label'), r = document.createElement('div'), i = document.createElement('input'), t = document.createElement('button');
-    w.className = 'k'; r.className = 'r'; l.textContent = 'Clave de ' + PROV[p].n; i.type = 'password'; i.placeholder = PROV[p].hint; i.autocomplete = 'off'; i.value = getKey(p);
+    w.className = 'k'; r.className = 'r'; l.textContent = 'Clave de ' + NAME(p); i.type = 'password'; i.placeholder = HINT(p); i.autocomplete = 'off'; i.value = getKey(p);
     i.oninput = () => setKey(p, i.value);
-    t.textContent = 'Probar'; t.onclick = async () => { try { S.models[p] = await listModels(p, getKey(p)); toast(PROV[p].n + ': clave correcta, ' + S.models[p].length + ' modelos.'); Status.probeAll(getKey); } catch (e) { toast(PROV[p].n + ': ' + e.message); } };
+    t.textContent = 'Probar'; t.onclick = () => testKey(p);
     r.append(i, t); w.append(l, r); k.append(w);
   });
-  $('rem').checked = remember();
+  const cw = document.createElement('div'), cl = document.createElement('label'), ci = document.createElement('input');
+  cw.className = 'k'; cl.textContent = 'Account ID de Cloudflare (va junto con la clave de Cloudflare)'; ci.type = 'search'; ci.placeholder = '32 caracteres, se ve en el panel de Cloudflare'; ci.autocomplete = 'off';
+  ci.value = getKey('cfid'); ci.oninput = () => setKey('cfid', ci.value); cw.append(cl, ci); k.append(cw);
+  $('rem').checked = remember(); $('eng').value = LS.mc_engine || 'tinyfish';
 }
 Status.models = () => [...new Set(S.sessions.map(s => s.prov + '\n' + s.model))].map(x => x.split('\n'));
 Status.onChange = (p, m, estado, motivo) => {
@@ -172,14 +176,14 @@ Status.onChange = (p, m, estado, motivo) => {
 };
 
 // ---- Eventos
-$('new').onclick = newSession; $('send').onclick = send; $('stop').onclick = () => S.abort && S.abort.abort();
-$('msg').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+$('new').onclick = newSession; $('send').onclick = () => go(); $('stop').onclick = () => S.abort && S.abort.abort();
+$('msg').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } });
 $('find').oninput = renderList; $('pill').onclick = openPicker; $('spec').onclick = openSpec; $('mq').oninput = renderModels; $('free').onchange = renderModels;
 $('burger').onclick = () => $('app').classList.toggle('open');
 $('cfg').onclick = () => { buildCfg(); $('dCfg').showModal(); };
 document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('dialog').close());
 $('mode').onclick = e => { const m = e.target.dataset.m; if (!m) return; S.cur.mode = m; save(); renderAll(); };
-$('rem').onchange = () => { const ks = Object.keys(PROV).map(p => [p, getKey(p)]); LS.mc_rem = $('rem').checked ? '1' : '0'; ks.forEach(([p, v]) => setKey(p, v)); };
+$('rem').onchange = () => { const ks = Object.keys(PROV).concat(Object.keys(SEARCH), ['cfid']).map(p => [p, getKey(p)]); LS.mc_rem = $('rem').checked ? '1' : '0'; ks.forEach(([p, v]) => setKey(p, v)); };
 $('wipe').onclick = () => { if (confirm('¿Borrar todas las claves y sesiones de este equipo?')) { LS.clear(); sessionStorage.clear(); location.reload(); } };
 $('perm').onclick = () => 'Notification' in window ? Notification.requestPermission().then(r => toast('Notificaciones: ' + r)) : toast('Este navegador no soporta notificaciones.');
 $('auto').checked = LS.mc_auto === '1'; $('auto').onchange = () => LS.mc_auto = $('auto').checked ? '1' : '0';
@@ -190,3 +194,27 @@ if ('speechSynthesis' in window) { speechSynthesis.onvoiceschanged = loadVoices;
 applyBg(LS.mc_bg || PRESETS[0]);
 if (!S.sessions.length) newSession(); else open(S.sessions[0].id);
 Status.start(getKey);
+
+// ---- F2-T02: sesión temporal y exportar/importar (las exportaciones no incluyen claves)
+$('tmp').checked = LS.mc_tmp === '1';
+$('tmp').onchange = () => {
+  if ($('tmp').checked) {
+    if (!confirm('Se borrarán las sesiones guardadas en este equipo y las nuevas vivirán solo hasta cerrar la pestaña. ¿Seguir?')) { $('tmp').checked = false; return; }
+    LS.removeItem('mc_sessions'); LS.mc_tmp = '1';
+  } else { LS.mc_tmp = '0'; save(); }
+};
+$('exp').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify({ version: 1, sessions: S.sessions }, null, 1)], { type: 'application/json' }));
+  a.download = 'sesiones-multichat.json'; a.click(); URL.revokeObjectURL(a.href);
+};
+$('imp').onchange = async () => {
+  try {
+    const j = JSON.parse(await $('imp').files[0].text()), have = new Set(S.sessions.map(s => s.id));
+    const ok = (j.sessions || []).filter(s => s && s.id && PROV[s.prov] && s.model && Array.isArray(s.msgs) && !have.has(String(s.id)));
+    ok.forEach(s => S.sessions.push({ id: String(s.id), title: String(s.title || 'Importada'), prov: s.prov, model: String(s.model), mode: s.mode === 'code' || s.mode === 'search' ? s.mode : 'chat',
+      msgs: s.msgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: String(m.content || '') })) }));
+    save(); renderAll(); toast(ok.length + ' sesiones importadas.');
+  } catch { toast('El archivo no es una exportación válida.'); }
+  $('imp').value = '';
+};
