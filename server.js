@@ -42,4 +42,4 @@ app.post('/proxy/cloudflare/run', async (req, res) => {
   } catch { clearTimeout(timer); if (!res.headersSent) res.status(502).json({ error: 'No se pudo contactar Cloudflare, o tardó más de 25 s.' }); else res.end(); }
 });
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '127.0.0.1', () => console.log('Abrí http://localhost:' + PORT));
+app.listen(PORT, () => console.log('Abrí http://localhost:' + PORT));
